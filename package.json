@@ -4,13 +4,13 @@
   "description": "Modern Vue.js-based Chat Log Visualization and Management System",
   "author": "Chatlog Web Team",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/your-username/chatlog-web",
+  "homepage": "https://github.com/sinyu1012/chatlog-web",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/chatlog-web.git"
+    "url": "https://github.com/sinyu1012/chatlog-web.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/chatlog-web/issues"
+    "url": "https://github.com/sinyu1012/chatlog-web/issues"
   },
   "keywords": [
     "chatlog",

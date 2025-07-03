@@ -77,7 +77,7 @@
 
 2. **克隆仓库**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/chatlog-web.git
+       git clone https://github.com/sinyu1012/chatlog-web.git
    cd chatlog-web
    ```
 

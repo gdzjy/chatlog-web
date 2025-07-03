@@ -30,12 +30,24 @@ Chatlog Web 是 [chatlog](https://github.com/sjzar/chatlog) 项目的现代化 W
 - 🎨 **现代化UI** - Element Plus + 渐变动画 + 卡片设计
 - ⚡ **高性能加载** - 异步数据获取 + 智能缓存
 
-## 🚀 在线演示
+## 🚀 DEMO 图片
 
-> **注意**: 演示版本使用模拟数据，完整功能需要配合 [chatlog](https://github.com/sjzar/chatlog) 后端服务使用。
+### 🏠 管理仪表盘
 
-- 📊 [数据分析页面](https://your-demo-url.com/analytics)
-- 🏠 [管理仪表盘](https://your-demo-url.com/)
+<div align="center">
+<img src="images/dashboard.jpg" alt="管理仪表盘" width="70%" />
+</div>
+
+*📊 数据概览 | 📈 迷你图表 | 🚀 快速操作 | 📝 最近会话*
+
+### 📊 数据分析页面
+
+<div align="center">
+<img src="images/analytics.jpg" alt="数据分析页面" width="70%" />
+</div>
+
+*📈 消息趋势分析 | 🔥 用户活跃度热力图 | 🥧 聊天类型分布 | ☁️ 高频词汇 | ⏰ 24小时活跃度 | 🏆 群聊排行*
+
 
 ## 📋 前置条件
 
@@ -362,9 +374,9 @@ CMD ["nginx", "-g", "daemon off;"]
 
 ## 📞 联系我们
 
-- **项目主页**: https://github.com/your-username/chatlog-web
-- **问题报告**: https://github.com/your-username/chatlog-web/issues
-- **功能建议**: https://github.com/your-username/chatlog-web/discussions
+- **项目主页**: https://github.com/sinyu1012/chatlog-web
+- **问题报告**: https://github.com/sinyu1012/chatlog-web/issues
+- **功能建议**: https://github.com/sinyu1012/chatlog-web/discussions
 
 ---
 

@@ -30,12 +30,23 @@ Chatlog Web is a modern web management interface for the [chatlog](https://githu
 - 🎨 **Modern UI** - Element Plus + gradient animations + card design
 - ⚡ **High Performance** - Asynchronous data loading + smart caching
 
-## 🚀 Live Demo
+## 🚀 Demo Screenshots
 
-> **Note**: Demo version uses mock data. Full functionality requires [chatlog](https://github.com/sjzar/chatlog) backend service.
+### 🏠 Management Dashboard
 
-- 📊 [Analytics Dashboard](https://your-demo-url.com/analytics)
-- 🏠 [Management Dashboard](https://your-demo-url.com/)
+<div align="center">
+<img src="images/dashboard.jpg" alt="Management Dashboard" width="70%" />
+</div>
+
+*📊 Data Overview | 📈 Mini Charts | 🚀 Quick Actions | 📝 Recent Sessions*
+
+### 📊 Analytics Dashboard
+
+<div align="center">
+<img src="images/analytics.jpg" alt="Analytics Dashboard" width="70%" />
+</div>
+
+*📈 Message Trends | 🔥 User Activity Heatmap | 🥧 Chat Type Distribution | ☁️ Word Frequency | ⏰ 24h Activity | 🏆 Group Rankings*
 
 ## 📋 Prerequisites
 
@@ -270,7 +281,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version update history.
 If you encounter any problems or have improvement suggestions, please:
 
 1. Check [FAQ](docs/FAQ.md)
-2. Search existing [Issues](https://github.com/your-username/chatlog-web/issues)
+2. Search existing [Issues](https://github.com/sinyu1012/chatlog-web/issues)
 3. Create new Issue with detailed information
 
 ## 📄 License
@@ -287,9 +298,9 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 
 ## 📞 Contact Us
 
-- **Project Homepage**: https://github.com/your-username/chatlog-web
-- **Issue Reports**: https://github.com/your-username/chatlog-web/issues
-- **Feature Suggestions**: https://github.com/your-username/chatlog-web/discussions
+- **Project Homepage**: https://github.com/sinyu1012/chatlog-web
+- **Issue Reports**: https://github.com/sinyu1012/chatlog-web/issues
+- **Feature Suggestions**: https://github.com/sinyu1012/chatlog-web/discussions
 
 ---
 
