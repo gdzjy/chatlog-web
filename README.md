@@ -384,6 +384,6 @@ CMD ["nginx", "-g", "daemon off;"]
 
 **⭐ 如果这个项目对您有帮助，请给我们一个星标！**
 
-Made with ❤️ by Chatlog Web Team
+Made with ❤️ by Sinyu
 
 </div> 
