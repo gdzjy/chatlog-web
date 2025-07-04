@@ -25,25 +25,63 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="聊天对象">
-              <el-input
+              <el-select
                 v-model="searchParams.talker"
-                placeholder="输入微信ID、群聊ID、备注名、昵称等"
-                clearable
-              />
+                multiple
+                filterable
+                allow-create
+                default-first-option
+                placeholder="选择或输入聊天对象（支持多选）"
+                style="width: 100%"
+                @change="handleTalkerChange"
+              >
+                <el-option
+                  v-for="item in talkerOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+              <div class="input-hint">
+                可输入微信ID、群聊ID、备注名、昵称等，支持多个选择
+              </div>
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="关键词">
-              <el-input
+              <el-select
                 v-model="searchParams.keyword"
-                placeholder="搜索消息内容"
-                clearable
-              />
+                multiple
+                filterable
+                allow-create
+                default-first-option
+                placeholder="输入关键词（支持多个）"
+                style="width: 100%"
+                @change="handleKeywordChange"
+              >
+                <el-option
+                  v-for="item in keywordOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+              <div class="input-hint">
+                输入消息内容关键词，支持多个关键词搜索
+              </div>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row :gutter="20">
-          <el-col :span="8">
+          <el-col :span="6">
+            <el-form-item label="搜索模式">
+              <el-radio-group v-model="searchMode">
+                <el-radio value="and">全部匹配</el-radio>
+                <el-radio value="or">任意匹配</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="6">
             <el-form-item label="数据格式">
               <el-select v-model="searchParams.format" style="width: 100%">
                 <el-option label="JSON" value="json" />
@@ -52,7 +90,7 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="6">
             <el-form-item label="每页数量">
               <el-select v-model="searchParams.limit" style="width: 100%">
                 <el-option label="20条" :value="20" />
@@ -62,7 +100,7 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="6">
             <el-form-item>
               <el-button type="primary" @click="handleSearch" :loading="loading">
                 <el-icon><Search /></el-icon>
@@ -83,6 +121,36 @@
             </el-form-item>
           </el-col>
         </el-row>
+        
+        <!-- 搜索条件预览 -->
+        <div v-if="searchParams.talker.length || searchParams.keyword.length" class="search-preview">
+          <div class="preview-title">当前搜索条件：</div>
+          <div class="preview-tags">
+            <el-tag 
+              v-for="talker in searchParams.talker" 
+              :key="talker"
+              type="primary"
+              closable
+              @close="removeTalker(talker)"
+            >
+              群聊: {{ talker }}
+            </el-tag>
+            <el-tag 
+              v-for="keyword in searchParams.keyword" 
+              :key="keyword"
+              type="success"
+              closable
+              @close="removeKeyword(keyword)"
+            >
+              关键词: {{ keyword }}
+            </el-tag>
+          </div>
+          <div class="preview-mode">
+            <el-text type="info">
+              搜索模式: {{ searchMode === 'and' ? '全部匹配（AND）' : '任意匹配（OR）' }}
+            </el-text>
+          </div>
+        </div>
       </el-form>
     </div>
 
@@ -90,6 +158,14 @@
     <div class="card">
       <div class="card-header">
         <h3>聊天记录 ({{ total }} 条)</h3>
+        <div class="search-info">
+          <span v-if="searchParams.talker.length">
+            搜索对象: {{ searchParams.talker.length }}个
+          </span>
+          <span v-if="searchParams.keyword.length">
+            关键词: {{ searchParams.keyword.length }}个
+          </span>
+        </div>
       </div>
       <div class="card-body">
         <div v-if="loading" class="loading">
@@ -118,6 +194,16 @@
                 >
                   {{ message.senderId }}
                 </el-tag>
+                <!-- 高亮匹配的关键词 -->
+                <el-tag 
+                  v-if="getMatchedKeywords(message.content).length > 0"
+                  size="small"
+                  type="success"
+                  effect="light"
+                  class="keyword-tag"
+                >
+                  匹配: {{ getMatchedKeywords(message.content).join(', ') }}
+                </el-tag>
               </div>
               <div class="message-time">
                 {{ formatTime(message.time) }}
@@ -138,7 +224,7 @@
                 <div v-html="parseMediaContent(message.content)"></div>
               </div>
               <div v-else class="text-message">
-                {{ message.content || '空消息' }}
+                <span v-html="highlightKeywords(message.content || '空消息')"></span>
               </div>
             </div>
           </div>
@@ -190,17 +276,28 @@ export default {
     const dateRange = ref(['', ''])
     const searchParams = reactive({
       time: '',
-      talker: '',
-      keyword: '',
+      talker: [], // 改为数组支持多选
+      keyword: [], // 改为数组支持多选
       format: 'json',
       limit: 20,
       offset: 0
     })
+    const searchMode = ref('and') // 搜索模式：and 或 or
     const currentPage = ref(1)
     const total = ref(0)
     const chatLogs = ref([])
     const imagePreviewVisible = ref(false)
     const previewImageUrl = ref('')
+    
+    // 选项数据
+    const talkerOptions = ref([])
+    const keywordOptions = ref([])
+    
+    // 用于存储历史搜索记录
+    const searchHistory = ref({
+      talkers: [],
+      keywords: []
+    })
 
     // 搜索聊天记录
     const handleSearch = async () => {
@@ -212,10 +309,28 @@ export default {
           timeParam = `${dateRange.value[0]}~${dateRange.value[1]}`
         }
 
+        // 构建搜索参数
         const params = {
-          ...searchParams,
           time: timeParam,
+          format: searchParams.format,
+          limit: searchParams.limit,
           offset: (currentPage.value - 1) * searchParams.limit
+        }
+
+        // 处理多个聊天对象
+        if (searchParams.talker.length > 0) {
+          params.talker = searchParams.talker.join(',')
+        }
+
+        // 处理多个关键词
+        if (searchParams.keyword.length > 0) {
+          if (searchMode.value === 'and') {
+            // 全部匹配模式：将关键词组合成一个查询
+            params.keyword = searchParams.keyword.join(' ')
+          } else {
+            // 任意匹配模式：用 | 分隔关键词（支持正则表达式）
+            params.keyword = searchParams.keyword.join('|')
+          }
         }
 
         // 移除空参数
@@ -250,7 +365,9 @@ export default {
         if (chatLogs.value.length === 0) {
           ElMessage.info('未找到匹配的聊天记录')
         } else {
-          ElMessage.success(`找到 ${chatLogs.value.length} 条记录`)
+          const talkerText = searchParams.talker.length > 0 ? `${searchParams.talker.length}个对象` : '所有对象'
+          const keywordText = searchParams.keyword.length > 0 ? `${searchParams.keyword.length}个关键词` : '无关键词'
+          ElMessage.success(`找到 ${chatLogs.value.length} 条记录 (搜索: ${talkerText}, ${keywordText})`)
         }
       } catch (error) {
         console.error('查询聊天记录失败:', error)
@@ -264,13 +381,99 @@ export default {
     const handleReset = () => {
       dateRange.value = ['', '']
       searchParams.time = ''
-      searchParams.talker = ''
-      searchParams.keyword = ''
+      searchParams.talker = []
+      searchParams.keyword = []
       searchParams.format = 'json'
       searchParams.limit = 20
+      searchMode.value = 'and'
       currentPage.value = 1
       chatLogs.value = []
       total.value = 0
+    }
+
+    // 处理聊天对象变化
+    const handleTalkerChange = (values) => {
+      // 更新历史记录
+      values.forEach(value => {
+        if (!searchHistory.value.talkers.includes(value)) {
+          searchHistory.value.talkers.unshift(value)
+        }
+      })
+      // 限制历史记录数量
+      searchHistory.value.talkers = searchHistory.value.talkers.slice(0, 20)
+      updateTalkerOptions()
+      saveHistory()
+    }
+
+    // 处理关键词变化
+    const handleKeywordChange = (values) => {
+      // 更新历史记录
+      values.forEach(value => {
+        if (!searchHistory.value.keywords.includes(value)) {
+          searchHistory.value.keywords.unshift(value)
+        }
+      })
+      // 限制历史记录数量
+      searchHistory.value.keywords = searchHistory.value.keywords.slice(0, 20)
+      updateKeywordOptions()
+      saveHistory()
+    }
+
+    // 更新聊天对象选项
+    const updateTalkerOptions = () => {
+      talkerOptions.value = searchHistory.value.talkers.map(talker => ({
+        value: talker,
+        label: talker
+      }))
+    }
+
+    // 更新关键词选项
+    const updateKeywordOptions = () => {
+      keywordOptions.value = searchHistory.value.keywords.map(keyword => ({
+        value: keyword,
+        label: keyword
+      }))
+    }
+
+    // 移除聊天对象
+    const removeTalker = (talker) => {
+      const index = searchParams.talker.indexOf(talker)
+      if (index > -1) {
+        searchParams.talker.splice(index, 1)
+      }
+    }
+
+    // 移除关键词
+    const removeKeyword = (keyword) => {
+      const index = searchParams.keyword.indexOf(keyword)
+      if (index > -1) {
+        searchParams.keyword.splice(index, 1)
+      }
+    }
+
+    // 获取匹配的关键词
+    const getMatchedKeywords = (content) => {
+      if (!content || !searchParams.keyword.length) return []
+      
+      const matched = []
+      searchParams.keyword.forEach(keyword => {
+        if (content.includes(keyword)) {
+          matched.push(keyword)
+        }
+      })
+      return matched
+    }
+
+    // 高亮关键词
+    const highlightKeywords = (content) => {
+      if (!content || !searchParams.keyword.length) return content
+      
+      let highlightedContent = content
+      searchParams.keyword.forEach(keyword => {
+        const regex = new RegExp(`(${keyword})`, 'gi')
+        highlightedContent = highlightedContent.replace(regex, '<span class="keyword-highlight">$1</span>')
+      })
+      return highlightedContent
     }
 
     // 导出聊天记录
@@ -286,10 +489,22 @@ export default {
 
         const params = {
           time: timeParam,
-          talker: searchParams.talker,
-          keyword: searchParams.keyword,
           format: 'csv',
           limit: 5000 // 导出时增加限制，避免数据过大
+        }
+
+        // 处理多个聊天对象
+        if (searchParams.talker.length > 0) {
+          params.talker = searchParams.talker.join(',')
+        }
+
+        // 处理多个关键词
+        if (searchParams.keyword.length > 0) {
+          if (searchMode.value === 'and') {
+            params.keyword = searchParams.keyword.join(' ')
+          } else {
+            params.keyword = searchParams.keyword.join('|')
+          }
         }
 
         // 移除空参数
@@ -433,25 +648,76 @@ export default {
       return dayjs(time).format('YYYY-MM-DD HH:mm:ss')
     }
 
+    // 初始化历史记录
+    const initializeHistory = () => {
+      try {
+        const savedHistory = localStorage.getItem('chatlog-search-history')
+        if (savedHistory) {
+          const history = JSON.parse(savedHistory)
+          searchHistory.value = {
+            talkers: history.talkers || [],
+            keywords: history.keywords || []
+          }
+          updateTalkerOptions()
+          updateKeywordOptions()
+        }
+      } catch (error) {
+        console.warn('恢复搜索历史失败:', error)
+      }
+    }
+
+    // 保存历史记录
+    const saveHistory = () => {
+      try {
+        localStorage.setItem('chatlog-search-history', JSON.stringify(searchHistory.value))
+      } catch (error) {
+        console.warn('保存搜索历史失败:', error)
+      }
+    }
+
+    // 监听搜索历史变化并保存
+    const saveHistoryOnChange = () => {
+      saveHistory()
+    }
+
+    // 组件挂载时初始化
+    onMounted(() => {
+      initializeHistory()
+    })
+
     return {
       loading,
       dateRange,
       searchParams,
+      searchMode,
       currentPage,
       total,
       chatLogs,
       imagePreviewVisible,
       previewImageUrl,
+      talkerOptions,
+      keywordOptions,
       handleSearch,
       handleReset,
       handleExport,
       handlePageChange,
+      handleSizeChange,
       getMediaUrl,
       previewImage,
       downloadFile,
       getSenderInitial,
       formatTime,
-      parseMediaContent
+      parseMediaContent,
+      getMatchedKeywords,
+      highlightKeywords,
+      removeTalker,
+      removeKeyword,
+      handleTalkerChange,
+      handleKeywordChange,
+      updateTalkerOptions,
+      updateKeywordOptions,
+      initializeHistory,
+      saveHistory
     }
   }
 }
@@ -567,6 +833,116 @@ export default {
   padding: 20px;
 }
 
+/* 新增功能样式 */
+.input-hint {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 5px;
+  line-height: 1.2;
+}
+
+.search-preview {
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e4e7ed;
+  margin-top: 20px;
+}
+
+.preview-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #409eff;
+  margin-bottom: 10px;
+}
+
+.preview-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.preview-tags .el-tag {
+  margin: 0;
+}
+
+.preview-mode {
+  font-size: 12px;
+}
+
+.search-info {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  font-size: 14px;
+  color: #606266;
+}
+
+.search-info span {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background-color: #e1f3ff;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.keyword-tag {
+  margin-left: 10px;
+}
+
+.keyword-highlight {
+  background-color: #fff3cd;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-weight: 600;
+  color: #856404;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #e4e7ed;
+  background-color: #fafafa;
+}
+
+.card-header h3 {
+  margin: 0;
+  color: #303133;
+}
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.card-body {
+  padding: 0;
+}
+
+.search-form {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-form .el-form-item {
+  margin-bottom: 18px;
+}
+
+.search-form .el-form-item__label {
+  font-weight: 600;
+  color: #303133;
+}
+
+/* 响应式设计 */
 @media (max-width: 768px) {
   .message-header {
     flex-direction: column;
@@ -580,6 +956,41 @@ export default {
   .message-image,
   .message-video {
     max-width: 100%;
+  }
+  
+  .search-info {
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-start;
+  }
+  
+  .preview-tags {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .chatlog-page {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-form {
+    padding: 15px;
+  }
+  
+  .search-form .el-col {
+    width: 100%;
+  }
+  
+  .search-form .el-row {
+    flex-direction: column;
   }
 }
 </style> 
