@@ -121,17 +121,20 @@ const parseChatLogs = (chatlogText) => {
 // 创建 axios 实例
 const api = axios.create({
   baseURL: API_BASE,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  timeout: 10000
 })
 
 // 请求拦截器
 api.interceptors.request.use(
   (config) => {
     // 在发送请求之前做些什么
-    console.log('API请求:', config.url, config.params)
+    console.log('API请求:', config.method?.toUpperCase(), config.url, config.params)
+    
+    // 只对有请求体的方法设置Content-Type
+    if (['post', 'put', 'patch'].includes(config.method?.toLowerCase())) {
+      config.headers['Content-Type'] = 'application/json'
+    }
+    
     return config
   },
   (error) => {
