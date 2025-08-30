@@ -14,38 +14,54 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Verify project structure
+      run: |
+        echo "项目文件列表:"
+        ls -la
+        echo ""
+        echo "检查必要的文件:"
+        if [ -f "package.json" ]; then
+          echo "✓ 找到 package.json"
+        else
+          echo "✗ 未找到 package.json"
+          exit 1
+        fi
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20.x'
-        # 不配置cache，避免锁文件错误
 
     - name: Install dependencies
-      run: |
-        # 检查package.json是否存在
-        if [ ! -f "package.json" ]; then
-          echo "错误：未找到package.json文件"
-          exit 1
-        fi
-        
-        # 直接安装依赖，不依赖锁文件
-        npm install
+      run: npm install
 
     - name: Build project
       run: npm run build
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-output
-        path: dist/
-        retention-days: 7
+    - name: Verify build output
+      run: |
+        if [ -d "dist" ]; then
+          echo "构建成功！dist目录内容:"
+          ls -la dist/
+        else
+          echo "构建失败：未生成dist目录"
+          ls -la
+          exit 1
+        fi
 
-    - name: Create Release (only on tags)
+    - name: Package artifacts
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        tar -czf chatlog-web-v${VERSION}.tar.gz dist/
+        zip -r chatlog-web-v${VERSION}.zip dist/
+
+    - name: Create GitHub Release
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        files: dist/**/*
+        files: |
+          chatlog-web-*.tar.gz
+          chatlog-web-*.zip
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
