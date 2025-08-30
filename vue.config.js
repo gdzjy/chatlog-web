@@ -5,7 +5,7 @@ module.exports = defineConfig({
   
   // 开发服务器配置
   devServer: {
-    port: 8080,
+    port: 5031,
     host: '0.0.0.0',
     https: false,
     open: true,
