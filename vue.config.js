@@ -12,7 +12,7 @@ module.exports = defineConfig({
     proxy: {
       // API请求代理
       '/api': {
-        target: 'http://127.0.0.1:5030',
+        target: 'http://192.168.8.12:5030',
         changeOrigin: true,
         ws: true,
         pathRewrite: {
@@ -21,7 +21,7 @@ module.exports = defineConfig({
       },
       // 图片文件代理
       '/image': {
-        target: 'http://127.0.0.1:5030',
+        target: 'http://192.168.8.12:5030',
         changeOrigin: true,
         pathRewrite: {
           '^/image': '/image'
@@ -29,7 +29,7 @@ module.exports = defineConfig({
       },
       // 视频文件代理
       '/video': {
-        target: 'http://127.0.0.1:5030',
+        target: 'http://192.168.8.12:5030',
         changeOrigin: true,
         pathRewrite: {
           '^/video': '/video'
@@ -37,7 +37,7 @@ module.exports = defineConfig({
       },
       // 语音文件代理
       '/voice': {
-        target: 'http://127.0.0.1:5030',
+        target: 'http://192.168.8.12:5030',
         changeOrigin: true,
         pathRewrite: {
           '^/voice': '/voice'
@@ -45,7 +45,7 @@ module.exports = defineConfig({
       },
       // 普通文件代理
       '/file': {
-        target: 'http://127.0.0.1:5030',
+        target: 'http://192.168.8.12:5030',
         changeOrigin: true,
         pathRewrite: {
           '^/file': '/file'
@@ -53,7 +53,7 @@ module.exports = defineConfig({
       },
       // 数据文件代理
       '/data': {
-        target: 'http://127.0.0.1:5030',
+        target: 'http://192.168.8.12:5030',
         changeOrigin: true,
         pathRewrite: {
           '^/data': '/data'
