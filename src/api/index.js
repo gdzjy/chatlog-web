@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // 根据环境选择API基础地址
 const API_BASE = process.env.NODE_ENV === 'production' 
-  ? 'http://127.0.0.1:5030' 
+  ? 'http://192.168.8.12:5030' 
   : '' // 开发环境使用代理
 
 // CSV解析工具函数
